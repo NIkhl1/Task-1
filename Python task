@@ -1,0 +1,73 @@
+def calculate_discount(cart, discounts):
+    applicable_discounts = []
+
+    # Check "bulk_5_discount"
+    for product in cart:
+        if product['quantity'] > 10:
+            discount_amount = product['price'] * 0.05 * product['quantity']
+            applicable_discounts.append(("bulk_5_discount", discount_amount))
+
+    # Check "bulk_10_discount"
+    total_quantity = sum(product['quantity'] for product in cart)
+    if total_quantity > 20:
+        discount_amount = sum(product['price'] * 0.1 * product['quantity'] for product in cart)
+        applicable_discounts.append(("bulk_10_discount", discount_amount))
+
+    # Check "tiered_50_discount"
+    if total_quantity > 30:
+        for product in cart:
+            if product['quantity'] > 15:
+                discount_amount = (product['quantity'] - 15) * product['price'] * 0.5
+                applicable_discounts.append(("tiered_50_discount", discount_amount))
+
+    # Check "flat_10_discount"
+    cart_total = sum(product['price'] * product['quantity'] for product in cart)
+    if cart_total > 200:
+        applicable_discounts.append(("flat_10_discount", 10))
+
+    # Apply the most beneficial discount
+    if applicable_discounts:
+        best_discount = max(applicable_discounts, key=lambda x: x[1])
+        discount_name, discount_amount = best_discount
+        cart_total -= discount_amount
+
+    return cart_total, discount_name, discount_amount
+
+
+def main():
+    products = {
+        "Product A": 20,
+        "Product B": 40,
+        "Product C": 50
+    }
+
+    cart = []
+
+    for product, price in products.items():
+        quantity = int(input(f"Enter the quantity of {product}: "))
+        is_gift = input(f"Is {product} wrapped as a gift? (yes/no): ").lower() == 'yes'
+        gift_wrap_fee = 1 if is_gift else 0
+        cart.append({
+            'product': product,
+            'quantity': quantity,
+            'price': price,
+            'gift_wrap_fee': gift_wrap_fee
+        })
+
+    subtotal, discount_name, discount_amount = calculate_discount(cart, products)
+    shipping_fee = (sum(product['quantity'] for product in cart) // 10) * 5
+    total = subtotal + shipping_fee + sum(product['gift_wrap_fee'] for product in cart)
+
+    # Display the details
+    for item in cart:
+        print(f"{item['product']} - Quantity: {item['quantity']} - Total: ${item['quantity'] * item['price']}")
+    
+    print(f"\nSubtotal: ${subtotal}")
+    print(f"Discount applied ({discount_name}): ${discount_amount}")
+    print(f"Shipping fee: ${shipping_fee}")
+    print(f"Gift wrap fee: ${sum(product['gift_wrap_fee'] for product in cart)}")
+    print(f"\nTotal: ${total}")
+
+
+if __name__ == "__main__":
+    main()
